@@ -1,0 +1,884 @@
+================================================================================
+                    BUCKET LIST APP - API ENDPOINTS DOCUMENTATION
+================================================================================
+
+Base URL: https://your-api-domain.com/api/v1
+
+Authentication: All endpoints require Bearer token authentication
+Header: Authorization: Bearer <token>
+
+================================================================================
+                              USER MANAGEMENT
+================================================================================
+
+1. USER REGISTRATION
+   POST /auth/register
+   
+   Request Body:
+   {
+     "email": "user@example.com",
+     "password": "SecurePassword123!",
+     "name": "John Doe"
+   }
+   
+   Response (201 Created):
+   {
+     "success": true,
+     "data": {
+       "userId": "user_1234567890",
+       "email": "user@example.com",
+       "name": "John Doe",
+       "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+       "createdAt": "2025-12-23T19:09:49Z"
+     }
+   }
+
+2. USER LOGIN
+   POST /auth/login
+   
+   Request Body:
+   {
+     "email": "user@example.com",
+     "password": "SecurePassword123!"
+   }
+   
+   Response (200 OK):
+   {
+     "success": true,
+     "data": {
+       "userId": "user_1234567890",
+       "email": "user@example.com",
+       "name": "John Doe",
+       "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+       "lastLogin": "2025-12-23T19:09:49Z"
+     }
+   }
+
+3. GET USER PROFILE
+   GET /auth/profile
+   
+   Response (200 OK):
+   {
+     "success": true,
+     "data": {
+       "userId": "user_1234567890",
+       "email": "user@example.com",
+       "name": "John Doe",
+       "createdAt": "2025-12-23T19:09:49Z",
+       "preferences": {
+         "isDarkMode": true,
+         "themeColor": "blue"
+       }
+     }
+   }
+
+4. UPDATE USER PREFERENCES
+   PATCH /auth/preferences
+   
+   Request Body:
+   {
+     "isDarkMode": true,
+     "themeColor": "purple"
+   }
+   
+   Response (200 OK):
+   {
+     "success": true,
+     "data": {
+       "isDarkMode": true,
+       "themeColor": "purple"
+     }
+   }
+
+================================================================================
+                              SPACE MANAGEMENT
+================================================================================
+
+5. GET ALL SPACES
+   GET /spaces
+   
+   Query Parameters:
+   - includeHidden (optional): boolean (default: false)
+   
+   Response (200 OK):
+   {
+     "success": true,
+     "data": [
+       {
+         "id": "space_1234567890",
+         "name": "Personal",
+         "icon": "👤",
+         "isHidden": false,
+         "createdAt": "2025-12-23T19:09:49Z",
+         "updatedAt": "2025-12-23T19:09:49Z",
+         "categoriesCount": 6,
+         "itemsCount": 25
+       },
+       {
+         "id": "space_9876543210",
+         "name": "Work",
+         "icon": "💼",
+         "isHidden": false,
+         "createdAt": "2025-12-23T19:09:49Z",
+         "updatedAt": "2025-12-23T19:09:49Z",
+         "categoriesCount": 4,
+         "itemsCount": 12
+       }
+     ]
+   }
+
+6. GET SINGLE SPACE (with full details)
+   GET /spaces/:spaceId
+   
+   Response (200 OK):
+   {
+     "success": true,
+     "data": {
+       "id": "space_1234567890",
+       "name": "Personal",
+       "icon": "👤",
+       "isHidden": false,
+       "createdAt": "2025-12-23T19:09:49Z",
+       "updatedAt": "2025-12-23T19:09:49Z",
+       "categories": [
+         {
+           "id": "default_places",
+           "name": "Places",
+           "icon": "🌍",
+           "isHidden": false,
+           "items": []
+         }
+       ]
+     }
+   }
+
+7. CREATE NEW SPACE
+   POST /spaces
+   
+   Request Body:
+   {
+     "name": "Travel Plans",
+     "icon": "✈️"
+   }
+   
+   Response (201 Created):
+   {
+     "success": true,
+     "data": {
+       "id": "space_1703358589000",
+       "name": "Travel Plans",
+       "icon": "✈️",
+       "isHidden": false,
+       "createdAt": "2025-12-23T19:09:49Z",
+       "updatedAt": "2025-12-23T19:09:49Z",
+       "categories": [
+         {
+           "id": "default_places",
+           "name": "Places",
+           "icon": "🌍",
+           "isHidden": false,
+           "items": []
+         },
+         {
+           "id": "default_books",
+           "name": "Books",
+           "icon": "📚",
+           "isHidden": false,
+           "items": []
+         }
+       ]
+     }
+   }
+
+8. UPDATE SPACE
+   PUT /spaces/:spaceId
+   
+   Request Body:
+   {
+     "name": "Updated Travel Plans",
+     "icon": "🌎"
+   }
+   
+   Response (200 OK):
+   {
+     "success": true,
+     "data": {
+       "id": "space_1703358589000",
+       "name": "Updated Travel Plans",
+       "icon": "🌎",
+       "isHidden": false,
+       "updatedAt": "2025-12-23T19:09:49Z"
+     }
+   }
+
+9. TOGGLE SPACE VISIBILITY
+   PATCH /spaces/:spaceId/visibility
+   
+   Request Body:
+   {
+     "isHidden": true
+   }
+   
+   Response (200 OK):
+   {
+     "success": true,
+     "data": {
+       "id": "space_1703358589000",
+       "isHidden": true
+     }
+   }
+
+10. REORDER SPACES
+    PATCH /spaces/reorder
+    
+    Request Body:
+    {
+      "spaceIds": [
+        "space_9876543210",
+        "space_1234567890",
+        "space_1703358589000"
+      ]
+    }
+    
+    Response (200 OK):
+    {
+      "success": true,
+      "message": "Spaces reordered successfully"
+    }
+
+11. DELETE SPACE
+    DELETE /spaces/:spaceId
+    
+    Response (200 OK):
+    {
+      "success": true,
+      "message": "Space deleted successfully"
+    }
+
+================================================================================
+                            CATEGORY MANAGEMENT
+================================================================================
+
+12. GET ALL CATEGORIES (for a space)
+    GET /spaces/:spaceId/categories
+    
+    Query Parameters:
+    - includeHidden (optional): boolean (default: false)
+    
+    Response (200 OK):
+    {
+      "success": true,
+      "data": [
+        {
+          "id": "default_places",
+          "name": "Places",
+          "icon": "🌍",
+          "isHidden": false,
+          "totalCount": 10,
+          "completedCount": 3,
+          "progress": 0.3,
+          "createdAt": "2025-12-23T19:09:49Z",
+          "updatedAt": "2025-12-23T19:09:49Z"
+        },
+        {
+          "id": "default_movies",
+          "name": "Movies",
+          "icon": "🎬",
+          "isHidden": false,
+          "totalCount": 15,
+          "completedCount": 8,
+          "progress": 0.533,
+          "createdAt": "2025-12-23T19:09:49Z",
+          "updatedAt": "2025-12-23T19:09:49Z"
+        }
+      ]
+    }
+
+13. GET SINGLE CATEGORY (with items)
+    GET /spaces/:spaceId/categories/:categoryId
+    
+    Response (200 OK):
+    {
+      "success": true,
+      "data": {
+        "id": "default_places",
+        "name": "Places",
+        "icon": "🌍",
+        "isHidden": false,
+        "totalCount": 10,
+        "completedCount": 3,
+        "progress": 0.3,
+        "items": [
+          {
+            "id": "item_1703358589000",
+            "text": "Visit Tokyo",
+            "isCompleted": false,
+            "categoryId": "default_places",
+            "imageUrl": "https://example.com/tokyo.jpg",
+            "description": "Experience cherry blossoms in spring",
+            "createdAt": "2025-12-23T19:09:49Z",
+            "updatedAt": "2025-12-23T19:09:49Z"
+          }
+        ]
+      }
+    }
+
+14. CREATE CATEGORY
+    POST /spaces/:spaceId/categories
+    
+    Request Body:
+    {
+      "name": "Restaurants",
+      "icon": "🍽️"
+    }
+    
+    Response (201 Created):
+    {
+      "success": true,
+      "data": {
+        "id": "custom_1703358589000",
+        "name": "Restaurants",
+        "icon": "🍽️",
+        "isHidden": false,
+        "totalCount": 0,
+        "completedCount": 0,
+        "progress": 0.0,
+        "items": [],
+        "createdAt": "2025-12-23T19:09:49Z",
+        "updatedAt": "2025-12-23T19:09:49Z"
+      }
+    }
+
+15. UPDATE CATEGORY
+    PUT /spaces/:spaceId/categories/:categoryId
+    
+    Request Body:
+    {
+      "name": "Must-Try Restaurants",
+      "icon": "🍴"
+    }
+    
+    Response (200 OK):
+    {
+      "success": true,
+      "data": {
+        "id": "custom_1703358589000",
+        "name": "Must-Try Restaurants",
+        "icon": "🍴",
+        "updatedAt": "2025-12-23T19:09:49Z"
+      }
+    }
+
+16. TOGGLE CATEGORY VISIBILITY
+    PATCH /spaces/:spaceId/categories/:categoryId/visibility
+    
+    Request Body:
+    {
+      "isHidden": true
+    }
+    
+    Response (200 OK):
+    {
+      "success": true,
+      "data": {
+        "id": "custom_1703358589000",
+        "isHidden": true
+      }
+    }
+
+17. REORDER CATEGORIES
+    PATCH /spaces/:spaceId/categories/reorder
+    
+    Request Body:
+    {
+      "categoryIds": [
+        "default_movies",
+        "default_places",
+        "default_books"
+      ]
+    }
+    
+    Response (200 OK):
+    {
+      "success": true,
+      "message": "Categories reordered successfully"
+    }
+
+18. DELETE CATEGORY
+    DELETE /spaces/:spaceId/categories/:categoryId
+    
+    Response (200 OK):
+    {
+      "success": true,
+      "message": "Category deleted successfully"
+    }
+
+================================================================================
+                              ITEM MANAGEMENT
+================================================================================
+
+19. GET ALL ITEMS (across all categories in a space)
+    GET /spaces/:spaceId/items
+    
+    Query Parameters:
+    - categoryId (optional): string - filter by category
+    - isCompleted (optional): boolean - filter by completion status
+    - uncategorized (optional): boolean - get only uncategorized items
+    - limit (optional): number (default: 100)
+    - offset (optional): number (default: 0)
+    
+    Response (200 OK):
+    {
+      "success": true,
+      "data": {
+        "items": [
+          {
+            "id": "item_1703358589000",
+            "text": "Visit Tokyo",
+            "isCompleted": false,
+            "categoryId": "default_places",
+            "imageUrl": "https://example.com/tokyo.jpg",
+            "description": "Experience cherry blossoms in spring",
+            "createdAt": "2025-12-23T19:09:49Z",
+            "updatedAt": "2025-12-23T19:09:49Z"
+          },
+          {
+            "id": "item_1703358590000",
+            "text": "Watch Inception",
+            "isCompleted": true,
+            "categoryId": "default_movies",
+            "imageUrl": "https://example.com/inception.jpg",
+            "description": "Mind-bending thriller by Christopher Nolan",
+            "createdAt": "2025-12-23T19:09:49Z",
+            "updatedAt": "2025-12-23T19:09:49Z"
+          }
+        ],
+        "total": 25,
+        "limit": 100,
+        "offset": 0
+      }
+    }
+
+20. GET SINGLE ITEM
+    GET /spaces/:spaceId/items/:itemId
+    
+    Response (200 OK):
+    {
+      "success": true,
+      "data": {
+        "id": "item_1703358589000",
+        "text": "Visit Tokyo",
+        "isCompleted": false,
+        "categoryId": "default_places",
+        "imageUrl": "https://example.com/tokyo.jpg",
+        "description": "Experience cherry blossoms in spring",
+        "createdAt": "2025-12-23T19:09:49Z",
+        "updatedAt": "2025-12-23T19:09:49Z"
+      }
+    }
+
+21. CREATE ITEM
+    POST /spaces/:spaceId/items
+    
+    Request Body:
+    {
+      "text": "Read 1984 by George Orwell",
+      "categoryId": "default_books",
+      "imageUrl": "https://example.com/1984.jpg",
+      "description": "Classic dystopian novel"
+    }
+    
+    Note: categoryId can be null for uncategorized items
+    
+    Response (201 Created):
+    {
+      "success": true,
+      "data": {
+        "id": "item_1703358591000",
+        "text": "Read 1984 by George Orwell",
+        "isCompleted": false,
+        "categoryId": "default_books",
+        "imageUrl": "https://example.com/1984.jpg",
+        "description": "Classic dystopian novel",
+        "createdAt": "2025-12-23T19:09:49Z",
+        "updatedAt": "2025-12-23T19:09:49Z"
+      }
+    }
+
+22. UPDATE ITEM
+    PUT /spaces/:spaceId/items/:itemId
+    
+    Request Body:
+    {
+      "text": "Read 1984 by George Orwell (Updated)",
+      "imageUrl": "https://example.com/1984-new.jpg",
+      "description": "Must-read dystopian masterpiece"
+    }
+    
+    Response (200 OK):
+    {
+      "success": true,
+      "data": {
+        "id": "item_1703358591000",
+        "text": "Read 1984 by George Orwell (Updated)",
+        "isCompleted": false,
+        "categoryId": "default_books",
+        "imageUrl": "https://example.com/1984-new.jpg",
+        "description": "Must-read dystopian masterpiece",
+        "updatedAt": "2025-12-23T19:09:49Z"
+      }
+    }
+
+23. TOGGLE ITEM COMPLETION
+    PATCH /spaces/:spaceId/items/:itemId/toggle
+    
+    Response (200 OK):
+    {
+      "success": true,
+      "data": {
+        "id": "item_1703358591000",
+        "isCompleted": true,
+        "updatedAt": "2025-12-23T19:09:49Z"
+      }
+    }
+
+24. MOVE ITEM TO CATEGORY
+    PATCH /spaces/:spaceId/items/:itemId/move
+    
+    Request Body:
+    {
+      "categoryId": "default_movies"
+    }
+    
+    Note: categoryId can be null to make item uncategorized
+    
+    Response (200 OK):
+    {
+      "success": true,
+      "data": {
+        "id": "item_1703358591000",
+        "categoryId": "default_movies",
+        "updatedAt": "2025-12-23T19:09:49Z"
+      }
+    }
+
+25. REORDER ITEMS (within a category)
+    PATCH /spaces/:spaceId/categories/:categoryId/items/reorder
+    
+    Request Body:
+    {
+      "itemIds": [
+        "item_1703358591000",
+        "item_1703358589000",
+        "item_1703358590000"
+      ]
+    }
+    
+    Response (200 OK):
+    {
+      "success": true,
+      "message": "Items reordered successfully"
+    }
+
+26. DELETE ITEM
+    DELETE /spaces/:spaceId/items/:itemId
+    
+    Response (200 OK):
+    {
+      "success": true,
+      "message": "Item deleted successfully"
+    }
+
+================================================================================
+                          EXTERNAL API INTEGRATIONS
+================================================================================
+
+27. SEARCH MOVIES (TMDB Integration)
+    GET /external/movies/search
+    
+    Query Parameters:
+    - query: string (required) - search term
+    - page: number (optional, default: 1)
+    
+    Response (200 OK):
+    {
+      "success": true,
+      "data": {
+        "results": [
+          {
+            "id": 27205,
+            "title": "Inception",
+            "overview": "Cobb, a skilled thief...",
+            "posterPath": "/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg",
+            "releaseDate": "2010-07-15",
+            "voteAverage": 8.4,
+            "fullPosterUrl": "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg"
+          }
+        ],
+        "page": 1,
+        "totalPages": 5,
+        "totalResults": 100
+      }
+    }
+
+28. SEARCH BOOKS (OpenLibrary Integration)
+    GET /external/books/search
+    
+    Query Parameters:
+    - query: string (required) - search term
+    - limit: number (optional, default: 10)
+    
+    Response (200 OK):
+    {
+      "success": true,
+      "data": {
+        "results": [
+          {
+            "key": "/works/OL45804W",
+            "title": "1984",
+            "author": "George Orwell",
+            "firstPublishYear": 1949,
+            "coverUrl": "https://covers.openlibrary.org/b/id/7222246-L.jpg"
+          }
+        ],
+        "total": 50
+      }
+    }
+
+
+
+================================================================================
+                            SYNC & BACKUP
+================================================================================
+
+30. SYNC USER DATA (Full Sync)
+    POST /sync
+    
+    Request Body:
+    {
+      "lastSyncTimestamp": "2025-12-23T19:09:49Z",
+      "spaces": [
+        {
+          "id": "space_1234567890",
+          "name": "Personal",
+          "icon": "👤",
+          "isHidden": false,
+          "categories": [...]
+        }
+      ],
+      "currentSpaceId": "space_1234567890",
+      "preferences": {
+        "isDarkMode": true,
+        "themeColor": "blue"
+      }
+    }
+    
+    Response (200 OK):
+    {
+      "success": true,
+      "data": {
+        "syncTimestamp": "2025-12-23T19:10:00Z",
+        "conflicts": [],
+        "spaces": [...],
+        "currentSpaceId": "space_1234567890",
+        "preferences": {
+          "isDarkMode": true,
+          "themeColor": "blue"
+        }
+      }
+    }
+
+31. GET BACKUP
+    GET /backup
+    
+    Response (200 OK):
+    {
+      "success": true,
+      "data": {
+        "backupTimestamp": "2025-12-23T19:09:49Z",
+        "spaces": [...],
+        "preferences": {...}
+      }
+    }
+
+32. RESTORE FROM BACKUP
+    POST /backup/restore
+    
+    Request Body:
+    {
+      "backupData": {
+        "spaces": [...],
+        "preferences": {...}
+      }
+    }
+    
+    Response (200 OK):
+    {
+      "success": true,
+      "message": "Data restored successfully"
+    }
+
+================================================================================
+                            STATISTICS & ANALYTICS
+================================================================================
+
+33. GET USER STATISTICS
+    GET /stats
+    
+    Query Parameters:
+    - spaceId (optional): string - get stats for specific space
+    
+    Response (200 OK):
+    {
+      "success": true,
+      "data": {
+        "totalSpaces": 3,
+        "totalCategories": 18,
+        "totalItems": 125,
+        "completedItems": 67,
+        "overallProgress": 0.536,
+        "completionByCategory": [
+          {
+            "categoryId": "default_movies",
+            "categoryName": "Movies",
+            "total": 15,
+            "completed": 8,
+            "progress": 0.533
+          }
+        ],
+        "recentActivity": [
+          {
+            "type": "item_completed",
+            "itemId": "item_1703358589000",
+            "itemText": "Visit Tokyo",
+            "timestamp": "2025-12-23T19:09:49Z"
+          }
+        ]
+      }
+    }
+
+================================================================================
+                            ERROR RESPONSES
+================================================================================
+
+All error responses follow this format:
+
+400 Bad Request:
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_INPUT",
+    "message": "Invalid request parameters",
+    "details": {
+      "field": "name",
+      "issue": "Name is required"
+    }
+  }
+}
+
+401 Unauthorized:
+{
+  "success": false,
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Authentication required"
+  }
+}
+
+403 Forbidden:
+{
+  "success": false,
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "You don't have permission to access this resource"
+  }
+}
+
+404 Not Found:
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Resource not found"
+  }
+}
+
+500 Internal Server Error:
+{
+  "success": false,
+  "error": {
+    "code": "INTERNAL_ERROR",
+    "message": "An unexpected error occurred"
+  }
+}
+
+================================================================================
+                            NOTES & BEST PRACTICES
+================================================================================
+
+1. All timestamps are in ISO 8601 format (UTC)
+2. IDs are generated using format: <type>_<timestamp_in_milliseconds>
+3. All list endpoints support pagination where applicable
+4. Rate limiting: 100 requests per minute per user
+5. Maximum payload size: 10MB
+6. Image URLs should be validated and sanitized
+7. Implement proper CORS headers for web clients
+8. Use HTTPS for all API calls
+9. Implement request/response logging for debugging
+10. Consider implementing WebSocket for real-time sync
+
+================================================================================
+                            DATABASE SCHEMA HINTS
+================================================================================
+
+Suggested Collections/Tables:
+
+1. users
+   - userId (PK)
+   - email (unique)
+   - passwordHash
+   - name
+   - createdAt
+   - lastLogin
+
+2. spaces
+   - spaceId (PK)
+   - userId (FK)
+   - name
+   - icon
+   - isHidden
+   - order
+   - createdAt
+   - updatedAt
+
+3. categories
+   - categoryId (PK)
+   - spaceId (FK)
+   - name
+   - icon
+   - isHidden
+   - order
+   - createdAt
+   - updatedAt
+
+4. items
+   - itemId (PK)
+   - categoryId (FK, nullable)
+   - spaceId (FK)
+   - text
+   - isCompleted
+   - imageUrl
+   - description
+   - order
+   - createdAt
+   - updatedAt
+
+5. user_preferences
+   - userId (PK, FK)
+   - isDarkMode
+   - themeColor
+   - updatedAt
+
+================================================================================
+                                END OF DOCUMENT
+================================================================================
