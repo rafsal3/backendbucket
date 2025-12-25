@@ -1,0 +1,910 @@
+{
+    "info": {
+        "name": "Bucket List API",
+        "description": "Complete API documentation for Bucket List Backend",
+        "version": "1.0.0",
+        "baseUrl": "http://localhost:5000/api/v1"
+    },
+    "auth": {
+        "type": "bearer",
+        "token": "{{authToken}}",
+        "note": "Get token from login or register endpoint"
+    },
+    "endpoints": {
+        "authentication": {
+            "register": {
+                "method": "POST",
+                "path": "/auth/register",
+                "description": "Register a new user",
+                "auth": false,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "email": "user@example.com",
+                    "password": "password123",
+                    "name": "John Doe"
+                },
+                "response": {
+                    "success": true,
+                    "data": {
+                        "userId": "user_1735143529000",
+                        "email": "user@example.com",
+                        "name": "John Doe",
+                        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                        "createdAt": "2025-12-25T16:28:49.000Z"
+                    }
+                }
+            },
+            "login": {
+                "method": "POST",
+                "path": "/auth/login",
+                "description": "Login user",
+                "auth": false,
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "email": "user@example.com",
+                    "password": "password123"
+                },
+                "response": {
+                    "success": true,
+                    "data": {
+                        "userId": "user_1234567890",
+                        "email": "user@example.com",
+                        "name": "John Doe",
+                        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                        "lastLogin": "2025-12-25T16:28:49.000Z"
+                    }
+                }
+            },
+            "getProfile": {
+                "method": "GET",
+                "path": "/auth/profile",
+                "description": "Get user profile",
+                "auth": true,
+                "headers": {
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "response": {
+                    "success": true,
+                    "data": {
+                        "userId": "user_1234567890",
+                        "email": "user@example.com",
+                        "name": "John Doe",
+                        "createdAt": "2025-12-25T16:28:49.000Z",
+                        "preferences": {
+                            "isDarkMode": true,
+                            "themeColor": "blue"
+                        }
+                    }
+                }
+            },
+            "updatePreferences": {
+                "method": "PATCH",
+                "path": "/auth/preferences",
+                "description": "Update user preferences",
+                "auth": true,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "body": {
+                    "isDarkMode": true,
+                    "themeColor": "purple"
+                },
+                "response": {
+                    "success": true,
+                    "data": {
+                        "isDarkMode": true,
+                        "themeColor": "purple"
+                    }
+                }
+            }
+        },
+        "spaces": {
+            "getAllSpaces": {
+                "method": "GET",
+                "path": "/spaces",
+                "description": "Get all spaces",
+                "auth": true,
+                "headers": {
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "queryParams": {
+                    "includeHidden": "false"
+                },
+                "response": {
+                    "success": true,
+                    "data": [
+                        {
+                            "id": "space_1234567890",
+                            "name": "Personal",
+                            "icon": "👤",
+                            "isHidden": false,
+                            "createdAt": "2025-12-25T16:28:49.000Z",
+                            "updatedAt": "2025-12-25T16:28:49.000Z",
+                            "categoriesCount": 6,
+                            "itemsCount": 25
+                        }
+                    ]
+                }
+            },
+            "getSpace": {
+                "method": "GET",
+                "path": "/spaces/:spaceId",
+                "description": "Get single space with categories and items",
+                "auth": true,
+                "headers": {
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "pathParams": {
+                    "spaceId": "space_1234567890"
+                },
+                "response": {
+                    "success": true,
+                    "data": {
+                        "id": "space_1234567890",
+                        "name": "Personal",
+                        "icon": "👤",
+                        "isHidden": false,
+                        "createdAt": "2025-12-25T16:28:49.000Z",
+                        "updatedAt": "2025-12-25T16:28:49.000Z",
+                        "categories": [
+                            {
+                                "id": "default_places",
+                                "name": "Places",
+                                "icon": "🌍",
+                                "isHidden": false,
+                                "items": []
+                            }
+                        ]
+                    }
+                }
+            },
+            "createSpace": {
+                "method": "POST",
+                "path": "/spaces",
+                "description": "Create new space",
+                "auth": true,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "body": {
+                    "name": "Travel Plans",
+                    "icon": "✈️"
+                },
+                "response": {
+                    "success": true,
+                    "data": {
+                        "id": "space_1703358589000",
+                        "name": "Travel Plans",
+                        "icon": "✈️",
+                        "isHidden": false,
+                        "createdAt": "2025-12-25T16:28:49.000Z",
+                        "updatedAt": "2025-12-25T16:28:49.000Z",
+                        "categories": []
+                    }
+                }
+            },
+            "updateSpace": {
+                "method": "PUT",
+                "path": "/spaces/:spaceId",
+                "description": "Update space",
+                "auth": true,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "pathParams": {
+                    "spaceId": "space_1703358589000"
+                },
+                "body": {
+                    "name": "Updated Travel Plans",
+                    "icon": "🌎"
+                },
+                "response": {
+                    "success": true,
+                    "data": {
+                        "id": "space_1703358589000",
+                        "name": "Updated Travel Plans",
+                        "icon": "🌎",
+                        "isHidden": false,
+                        "updatedAt": "2025-12-25T16:28:49.000Z"
+                    }
+                }
+            },
+            "toggleVisibility": {
+                "method": "PATCH",
+                "path": "/spaces/:spaceId/visibility",
+                "description": "Toggle space visibility",
+                "auth": true,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "pathParams": {
+                    "spaceId": "space_1703358589000"
+                },
+                "body": {
+                    "isHidden": true
+                },
+                "response": {
+                    "success": true,
+                    "data": {
+                        "id": "space_1703358589000",
+                        "isHidden": true
+                    }
+                }
+            },
+            "reorderSpaces": {
+                "method": "PATCH",
+                "path": "/spaces/reorder",
+                "description": "Reorder spaces",
+                "auth": true,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "body": {
+                    "spaceIds": [
+                        "space_9876543210",
+                        "space_1234567890",
+                        "space_1703358589000"
+                    ]
+                },
+                "response": {
+                    "success": true,
+                    "message": "Spaces reordered successfully"
+                }
+            },
+            "deleteSpace": {
+                "method": "DELETE",
+                "path": "/spaces/:spaceId",
+                "description": "Delete space",
+                "auth": true,
+                "headers": {
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "pathParams": {
+                    "spaceId": "space_1703358589000"
+                },
+                "response": {
+                    "success": true,
+                    "message": "Space deleted successfully"
+                }
+            }
+        },
+        "categories": {
+            "getAllCategories": {
+                "method": "GET",
+                "path": "/spaces/:spaceId/categories",
+                "description": "Get all categories for a space",
+                "auth": true,
+                "headers": {
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "pathParams": {
+                    "spaceId": "space_1234567890"
+                },
+                "queryParams": {
+                    "includeHidden": "false"
+                },
+                "response": {
+                    "success": true,
+                    "data": [
+                        {
+                            "id": "default_places",
+                            "name": "Places",
+                            "icon": "🌍",
+                            "isHidden": false,
+                            "totalCount": 10,
+                            "completedCount": 3,
+                            "progress": 0.3,
+                            "createdAt": "2025-12-25T16:28:49.000Z",
+                            "updatedAt": "2025-12-25T16:28:49.000Z"
+                        }
+                    ]
+                }
+            },
+            "getCategory": {
+                "method": "GET",
+                "path": "/spaces/:spaceId/categories/:categoryId",
+                "description": "Get single category with items",
+                "auth": true,
+                "headers": {
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "pathParams": {
+                    "spaceId": "space_1234567890",
+                    "categoryId": "default_places"
+                },
+                "response": {
+                    "success": true,
+                    "data": {
+                        "id": "default_places",
+                        "name": "Places",
+                        "icon": "🌍",
+                        "isHidden": false,
+                        "totalCount": 10,
+                        "completedCount": 3,
+                        "progress": 0.3,
+                        "items": [
+                            {
+                                "id": "item_1703358589000",
+                                "text": "Visit Tokyo",
+                                "isCompleted": false,
+                                "categoryId": "default_places",
+                                "imageUrl": "https://example.com/tokyo.jpg",
+                                "description": "Experience cherry blossoms",
+                                "createdAt": "2025-12-25T16:28:49.000Z",
+                                "updatedAt": "2025-12-25T16:28:49.000Z"
+                            }
+                        ]
+                    }
+                }
+            },
+            "createCategory": {
+                "method": "POST",
+                "path": "/spaces/:spaceId/categories",
+                "description": "Create category",
+                "auth": true,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "pathParams": {
+                    "spaceId": "space_1234567890"
+                },
+                "body": {
+                    "name": "Restaurants",
+                    "icon": "🍽️"
+                },
+                "response": {
+                    "success": true,
+                    "data": {
+                        "id": "custom_1703358589000",
+                        "name": "Restaurants",
+                        "icon": "🍽️",
+                        "isHidden": false,
+                        "totalCount": 0,
+                        "completedCount": 0,
+                        "progress": 0.0,
+                        "items": [],
+                        "createdAt": "2025-12-25T16:28:49.000Z",
+                        "updatedAt": "2025-12-25T16:28:49.000Z"
+                    }
+                }
+            },
+            "updateCategory": {
+                "method": "PUT",
+                "path": "/spaces/:spaceId/categories/:categoryId",
+                "description": "Update category",
+                "auth": true,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "pathParams": {
+                    "spaceId": "space_1234567890",
+                    "categoryId": "custom_1703358589000"
+                },
+                "body": {
+                    "name": "Must-Try Restaurants",
+                    "icon": "🍴"
+                },
+                "response": {
+                    "success": true,
+                    "data": {
+                        "id": "custom_1703358589000",
+                        "name": "Must-Try Restaurants",
+                        "icon": "🍴",
+                        "updatedAt": "2025-12-25T16:28:49.000Z"
+                    }
+                }
+            },
+            "toggleVisibility": {
+                "method": "PATCH",
+                "path": "/spaces/:spaceId/categories/:categoryId/visibility",
+                "description": "Toggle category visibility",
+                "auth": true,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "pathParams": {
+                    "spaceId": "space_1234567890",
+                    "categoryId": "custom_1703358589000"
+                },
+                "body": {
+                    "isHidden": true
+                },
+                "response": {
+                    "success": true,
+                    "data": {
+                        "id": "custom_1703358589000",
+                        "isHidden": true
+                    }
+                }
+            },
+            "reorderCategories": {
+                "method": "PATCH",
+                "path": "/spaces/:spaceId/categories/reorder",
+                "description": "Reorder categories",
+                "auth": true,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "pathParams": {
+                    "spaceId": "space_1234567890"
+                },
+                "body": {
+                    "categoryIds": [
+                        "default_movies",
+                        "default_places",
+                        "default_books"
+                    ]
+                },
+                "response": {
+                    "success": true,
+                    "message": "Categories reordered successfully"
+                }
+            },
+            "deleteCategory": {
+                "method": "DELETE",
+                "path": "/spaces/:spaceId/categories/:categoryId",
+                "description": "Delete category",
+                "auth": true,
+                "headers": {
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "pathParams": {
+                    "spaceId": "space_1234567890",
+                    "categoryId": "custom_1703358589000"
+                },
+                "response": {
+                    "success": true,
+                    "message": "Category deleted successfully"
+                }
+            }
+        },
+        "items": {
+            "getAllItems": {
+                "method": "GET",
+                "path": "/spaces/:spaceId/items",
+                "description": "Get all items in a space",
+                "auth": true,
+                "headers": {
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "pathParams": {
+                    "spaceId": "space_1234567890"
+                },
+                "queryParams": {
+                    "categoryId": "default_places",
+                    "isCompleted": "false",
+                    "uncategorized": "false",
+                    "limit": "100",
+                    "offset": "0"
+                },
+                "response": {
+                    "success": true,
+                    "data": {
+                        "items": [
+                            {
+                                "id": "item_1703358589000",
+                                "text": "Visit Tokyo",
+                                "isCompleted": false,
+                                "categoryId": "default_places",
+                                "imageUrl": "https://example.com/tokyo.jpg",
+                                "description": "Experience cherry blossoms",
+                                "createdAt": "2025-12-25T16:28:49.000Z",
+                                "updatedAt": "2025-12-25T16:28:49.000Z"
+                            }
+                        ],
+                        "total": 25,
+                        "limit": 100,
+                        "offset": 0
+                    }
+                }
+            },
+            "getItem": {
+                "method": "GET",
+                "path": "/spaces/:spaceId/items/:itemId",
+                "description": "Get single item",
+                "auth": true,
+                "headers": {
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "pathParams": {
+                    "spaceId": "space_1234567890",
+                    "itemId": "item_1703358589000"
+                },
+                "response": {
+                    "success": true,
+                    "data": {
+                        "id": "item_1703358589000",
+                        "text": "Visit Tokyo",
+                        "isCompleted": false,
+                        "categoryId": "default_places",
+                        "imageUrl": "https://example.com/tokyo.jpg",
+                        "description": "Experience cherry blossoms",
+                        "createdAt": "2025-12-25T16:28:49.000Z",
+                        "updatedAt": "2025-12-25T16:28:49.000Z"
+                    }
+                }
+            },
+            "createItem": {
+                "method": "POST",
+                "path": "/spaces/:spaceId/items",
+                "description": "Create item",
+                "auth": true,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "pathParams": {
+                    "spaceId": "space_1234567890"
+                },
+                "body": {
+                    "text": "Read 1984 by George Orwell",
+                    "categoryId": "default_books",
+                    "imageUrl": "https://example.com/1984.jpg",
+                    "description": "Classic dystopian novel"
+                },
+                "note": "categoryId can be null for uncategorized items",
+                "response": {
+                    "success": true,
+                    "data": {
+                        "id": "item_1703358591000",
+                        "text": "Read 1984 by George Orwell",
+                        "isCompleted": false,
+                        "categoryId": "default_books",
+                        "imageUrl": "https://example.com/1984.jpg",
+                        "description": "Classic dystopian novel",
+                        "createdAt": "2025-12-25T16:28:49.000Z",
+                        "updatedAt": "2025-12-25T16:28:49.000Z"
+                    }
+                }
+            },
+            "updateItem": {
+                "method": "PUT",
+                "path": "/spaces/:spaceId/items/:itemId",
+                "description": "Update item",
+                "auth": true,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "pathParams": {
+                    "spaceId": "space_1234567890",
+                    "itemId": "item_1703358591000"
+                },
+                "body": {
+                    "text": "Read 1984 by George Orwell (Updated)",
+                    "imageUrl": "https://example.com/1984-new.jpg",
+                    "description": "Must-read dystopian masterpiece"
+                },
+                "response": {
+                    "success": true,
+                    "data": {
+                        "id": "item_1703358591000",
+                        "text": "Read 1984 by George Orwell (Updated)",
+                        "isCompleted": false,
+                        "categoryId": "default_books",
+                        "imageUrl": "https://example.com/1984-new.jpg",
+                        "description": "Must-read dystopian masterpiece",
+                        "updatedAt": "2025-12-25T16:28:49.000Z"
+                    }
+                }
+            },
+            "toggleCompletion": {
+                "method": "PATCH",
+                "path": "/spaces/:spaceId/items/:itemId/toggle",
+                "description": "Toggle item completion",
+                "auth": true,
+                "headers": {
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "pathParams": {
+                    "spaceId": "space_1234567890",
+                    "itemId": "item_1703358591000"
+                },
+                "response": {
+                    "success": true,
+                    "data": {
+                        "id": "item_1703358591000",
+                        "isCompleted": true,
+                        "updatedAt": "2025-12-25T16:28:49.000Z"
+                    }
+                }
+            },
+            "moveItem": {
+                "method": "PATCH",
+                "path": "/spaces/:spaceId/items/:itemId/move",
+                "description": "Move item to category",
+                "auth": true,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "pathParams": {
+                    "spaceId": "space_1234567890",
+                    "itemId": "item_1703358591000"
+                },
+                "body": {
+                    "categoryId": "default_movies"
+                },
+                "note": "categoryId can be null to make item uncategorized",
+                "response": {
+                    "success": true,
+                    "data": {
+                        "id": "item_1703358591000",
+                        "categoryId": "default_movies",
+                        "updatedAt": "2025-12-25T16:28:49.000Z"
+                    }
+                }
+            },
+            "reorderItems": {
+                "method": "PATCH",
+                "path": "/spaces/:spaceId/categories/:categoryId/items/reorder",
+                "description": "Reorder items within a category",
+                "auth": true,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "pathParams": {
+                    "spaceId": "space_1234567890",
+                    "categoryId": "default_places"
+                },
+                "body": {
+                    "itemIds": [
+                        "item_1703358591000",
+                        "item_1703358589000",
+                        "item_1703358590000"
+                    ]
+                },
+                "response": {
+                    "success": true,
+                    "message": "Items reordered successfully"
+                }
+            },
+            "deleteItem": {
+                "method": "DELETE",
+                "path": "/spaces/:spaceId/items/:itemId",
+                "description": "Delete item",
+                "auth": true,
+                "headers": {
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "pathParams": {
+                    "spaceId": "space_1234567890",
+                    "itemId": "item_1703358591000"
+                },
+                "response": {
+                    "success": true,
+                    "message": "Item deleted successfully"
+                }
+            }
+        },
+        "external": {
+            "searchMovies": {
+                "method": "GET",
+                "path": "/external/movies/search",
+                "description": "Search movies using TMDB",
+                "auth": true,
+                "headers": {
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "queryParams": {
+                    "query": "inception",
+                    "page": "1"
+                },
+                "response": {
+                    "success": true,
+                    "data": {
+                        "results": [
+                            {
+                                "id": 27205,
+                                "title": "Inception",
+                                "overview": "Cobb, a skilled thief...",
+                                "posterPath": "/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg",
+                                "releaseDate": "2010-07-15",
+                                "voteAverage": 8.4,
+                                "fullPosterUrl": "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg"
+                            }
+                        ],
+                        "page": 1,
+                        "totalPages": 5,
+                        "totalResults": 100
+                    }
+                }
+            },
+            "searchBooks": {
+                "method": "GET",
+                "path": "/external/books/search",
+                "description": "Search books using OpenLibrary",
+                "auth": true,
+                "headers": {
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "queryParams": {
+                    "query": "1984",
+                    "limit": "10"
+                },
+                "response": {
+                    "success": true,
+                    "data": {
+                        "results": [
+                            {
+                                "key": "/works/OL45804W",
+                                "title": "1984",
+                                "author": "George Orwell",
+                                "firstPublishYear": 1949,
+                                "coverUrl": "https://covers.openlibrary.org/b/id/7222246-L.jpg"
+                            }
+                        ],
+                        "total": 50
+                    }
+                }
+            }
+        },
+        "sync": {
+            "syncData": {
+                "method": "POST",
+                "path": "/sync",
+                "description": "Full data sync",
+                "auth": true,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "body": {
+                    "lastSyncTimestamp": "2025-12-25T16:28:49.000Z",
+                    "spaces": [],
+                    "currentSpaceId": "space_1234567890",
+                    "preferences": {
+                        "isDarkMode": true,
+                        "themeColor": "blue"
+                    }
+                },
+                "response": {
+                    "success": true,
+                    "data": {
+                        "syncTimestamp": "2025-12-25T16:30:00.000Z",
+                        "conflicts": [],
+                        "spaces": [],
+                        "currentSpaceId": "space_1234567890",
+                        "preferences": {
+                            "isDarkMode": true,
+                            "themeColor": "blue"
+                        }
+                    }
+                }
+            },
+            "getBackup": {
+                "method": "GET",
+                "path": "/backup",
+                "description": "Get full backup",
+                "auth": true,
+                "headers": {
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "response": {
+                    "success": true,
+                    "data": {
+                        "backupTimestamp": "2025-12-25T16:28:49.000Z",
+                        "spaces": [],
+                        "preferences": {}
+                    }
+                }
+            },
+            "restoreBackup": {
+                "method": "POST",
+                "path": "/backup/restore",
+                "description": "Restore from backup",
+                "auth": true,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "body": {
+                    "backupData": {
+                        "spaces": [],
+                        "preferences": {}
+                    }
+                },
+                "response": {
+                    "success": true,
+                    "message": "Data restored successfully"
+                }
+            }
+        },
+        "stats": {
+            "getStats": {
+                "method": "GET",
+                "path": "/stats",
+                "description": "Get user statistics",
+                "auth": true,
+                "headers": {
+                    "Authorization": "Bearer {{authToken}}"
+                },
+                "queryParams": {
+                    "spaceId": "space_1234567890"
+                },
+                "response": {
+                    "success": true,
+                    "data": {
+                        "totalSpaces": 3,
+                        "totalCategories": 18,
+                        "totalItems": 125,
+                        "completedItems": 67,
+                        "overallProgress": 0.536,
+                        "completionByCategory": [
+                            {
+                                "categoryId": "default_movies",
+                                "categoryName": "Movies",
+                                "total": 15,
+                                "completed": 8,
+                                "progress": 0.533
+                            }
+                        ],
+                        "recentActivity": [
+                            {
+                                "type": "item_completed",
+                                "itemId": "item_1703358589000",
+                                "itemText": "Visit Tokyo",
+                                "timestamp": "2025-12-25T16:28:49.000Z"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    "errorResponses": {
+        "400": {
+            "success": false,
+            "error": {
+                "code": "INVALID_INPUT",
+                "message": "Invalid request parameters",
+                "details": {
+                    "field": "name",
+                    "issue": "Name is required"
+                }
+            }
+        },
+        "401": {
+            "success": false,
+            "error": {
+                "code": "UNAUTHORIZED",
+                "message": "Authentication required"
+            }
+        },
+        "403": {
+            "success": false,
+            "error": {
+                "code": "FORBIDDEN",
+                "message": "You don't have permission to access this resource"
+            }
+        },
+        "404": {
+            "success": false,
+            "error": {
+                "code": "NOT_FOUND",
+                "message": "Resource not found"
+            }
+        },
+        "500": {
+            "success": false,
+            "error": {
+                "code": "INTERNAL_ERROR",
+                "message": "An unexpected error occurred"
+            }
+        }
+    }
+}

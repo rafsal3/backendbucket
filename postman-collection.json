@@ -1,0 +1,630 @@
+{
+    "info": {
+        "_postman_id": "bucket-list-api-collection",
+        "name": "Bucket List API",
+        "description": "Complete API collection for Bucket List Backend - Import this into Postman",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000/api/v1",
+            "type": "string"
+        },
+        {
+            "key": "authToken",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Authentication",
+            "item": [
+                {
+                    "name": "Register",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"name\": \"Test User\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/register",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "register"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData.success && jsonData.data.token) {",
+                                    "    pm.collectionVariables.set('authToken', jsonData.data.token);",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Profile",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/profile",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "profile"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Preferences",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"isDarkMode\": true,\n  \"themeColor\": \"purple\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/preferences",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "preferences"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Spaces",
+            "item": [
+                {
+                    "name": "Get All Spaces",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/spaces?includeHidden=false",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "spaces"
+                            ],
+                            "query": [
+                                {
+                                    "key": "includeHidden",
+                                    "value": "false"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Single Space",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/spaces/:spaceId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "spaces",
+                                ":spaceId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "spaceId",
+                                    "value": "space_1234567890"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Space",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Travel Plans\",\n  \"icon\": \"✈️\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/spaces",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "spaces"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Space",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Updated Travel Plans\",\n  \"icon\": \"🌎\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/spaces/:spaceId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "spaces",
+                                ":spaceId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "spaceId",
+                                    "value": "space_1234567890"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Toggle Space Visibility",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"isHidden\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/spaces/:spaceId/visibility",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "spaces",
+                                ":spaceId",
+                                "visibility"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "spaceId",
+                                    "value": "space_1234567890"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Reorder Spaces",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"spaceIds\": [\n    \"space_9876543210\",\n    \"space_1234567890\"\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/spaces/reorder",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "spaces",
+                                "reorder"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Space",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/spaces/:spaceId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "spaces",
+                                ":spaceId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "spaceId",
+                                    "value": "space_1234567890"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Categories",
+            "item": [
+                {
+                    "name": "Get All Categories",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/spaces/:spaceId/categories",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "spaces",
+                                ":spaceId",
+                                "categories"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "spaceId",
+                                    "value": "space_1234567890"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Category",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Restaurants\",\n  \"icon\": \"🍽️\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/spaces/:spaceId/categories",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "spaces",
+                                ":spaceId",
+                                "categories"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "spaceId",
+                                    "value": "space_1234567890"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Items",
+            "item": [
+                {
+                    "name": "Get All Items",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/spaces/:spaceId/items",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "spaces",
+                                ":spaceId",
+                                "items"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "spaceId",
+                                    "value": "space_1234567890"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Item",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"text\": \"Visit Tokyo\",\n  \"categoryId\": \"default_places\",\n  \"imageUrl\": \"https://example.com/tokyo.jpg\",\n  \"description\": \"Experience cherry blossoms\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/spaces/:spaceId/items",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "spaces",
+                                ":spaceId",
+                                "items"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "spaceId",
+                                    "value": "space_1234567890"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Toggle Item Completion",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/spaces/:spaceId/items/:itemId/toggle",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "spaces",
+                                ":spaceId",
+                                "items",
+                                ":itemId",
+                                "toggle"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "spaceId",
+                                    "value": "space_1234567890"
+                                },
+                                {
+                                    "key": "itemId",
+                                    "value": "item_1234567890"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "External APIs",
+            "item": [
+                {
+                    "name": "Search Movies",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/external/movies/search?query=inception",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "external",
+                                "movies",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "query",
+                                    "value": "inception"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Search Books",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/external/books/search?query=1984",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "external",
+                                "books",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "query",
+                                    "value": "1984"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Statistics",
+            "item": [
+                {
+                    "name": "Get Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/stats",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "stats"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
