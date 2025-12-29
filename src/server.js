@@ -59,14 +59,21 @@ app.get('/health', (req, res) => {
     });
 });
 
+// Import deprecation middleware
+const { deprecationWarning } = require('./middlewares/deprecation');
+
 // API Routes
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/spaces', spaceRoutes);
-app.use('/api/v1/spaces/:spaceId/categories', categoryRoutes);
-app.use('/api/v1/spaces/:spaceId/items', itemRoutes);
-app.use('/api/v1/external', externalRoutes);
+app.use('/api/v1/auth', authRoutes); // Auth routes are NOT deprecated
+app.use('/api/v1/external', externalRoutes); // External API routes are NOT deprecated
+
+// NEW: Sync routes (offline-first architecture) - RECOMMENDED
 app.use('/api/v1/sync', syncRoutes);
-app.use('/api/v1/stats', statsRoutes);
+
+// DEPRECATED: Old CRUD routes (still functional but discouraged)
+app.use('/api/v1/spaces', deprecationWarning('/api/v1/spaces/*', '/api/v1/sync/push and /api/v1/sync/pull'), spaceRoutes);
+app.use('/api/v1/spaces/:spaceId/categories', deprecationWarning('/api/v1/spaces/:spaceId/categories/*', '/api/v1/sync/push and /api/v1/sync/pull'), categoryRoutes);
+app.use('/api/v1/spaces/:spaceId/items', deprecationWarning('/api/v1/spaces/:spaceId/items/*', '/api/v1/sync/push and /api/v1/sync/pull'), itemRoutes);
+app.use('/api/v1/stats', deprecationWarning('/api/v1/stats', '/api/v1/sync/pull'), statsRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -91,6 +98,9 @@ app.listen(PORT, HOST, () => {
     console.log(`Local: http://localhost:${PORT}`);
     console.log(`Network: http://<your-ip-address>:${PORT}`);
     console.log(`To find your IP: Run 'ipconfig' (Windows) or 'ifconfig' (Mac/Linux)`);
+    console.log('\n🚀 OFFLINE-FIRST SYNC API ENABLED');
+    console.log('   Use /api/v1/sync/push and /api/v1/sync/pull for best performance');
+    console.log('   See SYNC_API_DOCUMENTATION.md for details\n');
 });
 
 module.exports = app;

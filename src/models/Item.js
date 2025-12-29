@@ -1,12 +1,19 @@
 const mongoose = require('mongoose');
 
 const itemSchema = new mongoose.Schema({
-    itemId: {
+    id: {
         type: String,
         required: true,
         unique: true,
         default: function () {
-            return `item_${Date.now()}`;
+            return `item_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        }
+    },
+    // Legacy field for backward compatibility
+    itemId: {
+        type: String,
+        default: function () {
+            return this.id;
         }
     },
     spaceId: {
@@ -22,7 +29,8 @@ const itemSchema = new mongoose.Schema({
     userId: {
         type: String,
         required: true,
-        ref: 'User'
+        ref: 'User',
+        index: true
     },
     text: {
         type: String,
@@ -45,6 +53,16 @@ const itemSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    deleted: {
+        type: Boolean,
+        default: false,
+        index: true
+    },
+    deviceId: {
+        type: String,
+        required: false,
+        default: 'server'
+    },
     createdAt: {
         type: Date,
         default: Date.now
@@ -57,9 +75,11 @@ const itemSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Indexes for faster queries
+// Indexes for sync queries
+itemSchema.index({ userId: 1, updatedAt: 1 });
+itemSchema.index({ userId: 1, deviceId: 1 });
 itemSchema.index({ spaceId: 1, categoryId: 1, order: 1 });
-itemSchema.index({ userId: 1 });
+itemSchema.index({ userId: 1, deleted: 1 });
 itemSchema.index({ isCompleted: 1 });
 
 module.exports = mongoose.model('Item', itemSchema);

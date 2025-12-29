@@ -1,12 +1,19 @@
 const mongoose = require('mongoose');
 
 const categorySchema = new mongoose.Schema({
-    categoryId: {
+    id: {
         type: String,
         required: true,
         unique: true,
         default: function () {
-            return `category_${Date.now()}`;
+            return `category_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        }
+    },
+    // Legacy field for backward compatibility
+    categoryId: {
+        type: String,
+        default: function () {
+            return this.id;
         }
     },
     spaceId: {
@@ -17,7 +24,8 @@ const categorySchema = new mongoose.Schema({
     userId: {
         type: String,
         required: true,
-        ref: 'User'
+        ref: 'User',
+        index: true
     },
     name: {
         type: String,
@@ -36,6 +44,16 @@ const categorySchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    deleted: {
+        type: Boolean,
+        default: false,
+        index: true
+    },
+    deviceId: {
+        type: String,
+        required: false,
+        default: 'server'
+    },
     createdAt: {
         type: Date,
         default: Date.now
@@ -48,8 +66,10 @@ const categorySchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Index for faster queries
+// Indexes for sync queries
+categorySchema.index({ userId: 1, updatedAt: 1 });
+categorySchema.index({ userId: 1, deviceId: 1 });
 categorySchema.index({ spaceId: 1, order: 1 });
-categorySchema.index({ userId: 1 });
+categorySchema.index({ userId: 1, deleted: 1 });
 
 module.exports = mongoose.model('Category', categorySchema);

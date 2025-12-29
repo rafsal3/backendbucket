@@ -3,171 +3,393 @@ const Category = require('../models/Category');
 const Item = require('../models/Item');
 const UserPreferences = require('../models/UserPreferences');
 
-// @desc    Full sync
-// @route   POST /api/v1/sync
-// @access  Private
-const syncData = async (req, res, next) => {
-    try {
-        const { lastSyncTimestamp, spaces, currentSpaceId, preferences } = req.body;
+/**
+ * Helper function to determine if incoming change should be accepted
+ * Uses Last-Write-Wins (LWW) conflict resolution strategy
+ */
+const shouldAcceptChange = (incomingRecord, existingRecord) => {
+    if (!existingRecord) return true; // New record, always accept
 
-        // Update preferences if provided
-        if (preferences) {
-            await UserPreferences.findOneAndUpdate(
-                { userId: req.user.userId },
-                { ...preferences, updatedAt: Date.now() },
-                { upsert: true }
-            );
-        }
+    const incomingTime = new Date(incomingRecord.updatedAt);
+    const existingTime = new Date(existingRecord.updatedAt);
 
-        // Sync spaces (simplified - in production you'd handle conflicts)
-        if (spaces && Array.isArray(spaces)) {
-            for (const spaceData of spaces) {
-                await Space.findOneAndUpdate(
-                    { spaceId: spaceData.id, userId: req.user.userId },
-                    {
-                        name: spaceData.name,
-                        icon: spaceData.icon,
-                        isHidden: spaceData.isHidden,
-                        updatedAt: Date.now()
-                    },
-                    { upsert: true }
-                );
-            }
-        }
-
-        // Get latest data from server
-        const serverSpaces = await Space.find({ userId: req.user.userId }).sort({ order: 1 });
-        const serverPreferences = await UserPreferences.findOne({ userId: req.user.userId });
-
-        res.status(200).json({
-            success: true,
-            data: {
-                syncTimestamp: new Date().toISOString(),
-                conflicts: [],
-                spaces: serverSpaces,
-                currentSpaceId,
-                preferences: serverPreferences || { isDarkMode: true, themeColor: 'blue' }
-            }
-        });
-    } catch (error) {
-        next(error);
-    }
+    // Last write wins - accept if incoming is newer
+    return incomingTime > existingTime;
 };
 
-// @desc    Get backup
-// @route   GET /api/v1/backup
-// @access  Private
-const getBackup = async (req, res, next) => {
-    try {
-        const spaces = await Space.find({ userId: req.user.userId });
-        const categories = await Category.find({ userId: req.user.userId });
-        const items = await Item.find({ userId: req.user.userId });
-        const preferences = await UserPreferences.findOne({ userId: req.user.userId });
+/**
+ * Helper function to process sync changes for a specific model
+ */
+const processSyncChanges = async (Model, records, userId, deviceId) => {
+    let accepted = 0;
+    let rejected = 0;
+    const conflicts = [];
 
-        // Organize data by spaces
-        const spacesWithData = await Promise.all(
-            spaces.map(async (space) => {
-                const spaceCategories = categories.filter(cat => cat.spaceId === space.spaceId);
-                const categoriesWithItems = spaceCategories.map(category => {
-                    const categoryItems = items.filter(item => item.categoryId === category.categoryId);
-                    return {
-                        ...category.toObject(),
-                        items: categoryItems
-                    };
-                });
+    for (const record of records) {
+        try {
+            // Ensure the record belongs to the authenticated user
+            if (record.userId !== userId) {
+                rejected++;
+                continue;
+            }
 
-                return {
-                    ...space.toObject(),
-                    categories: categoriesWithItems
+            // Find existing record
+            const existing = await Model.findOne({ id: record.id, userId });
+
+            // Check if we should accept this change
+            if (shouldAcceptChange(record, existing)) {
+                // Prepare record for upsert
+                const recordToSave = {
+                    ...record,
+                    userId, // Ensure userId is set
+                    deviceId, // Track which device made this change
+                    updatedAt: new Date(record.updatedAt) // Ensure proper date format
                 };
-            })
-        );
 
-        res.status(200).json({
-            success: true,
-            data: {
-                backupTimestamp: new Date().toISOString(),
-                spaces: spacesWithData,
-                preferences: preferences || { isDarkMode: true, themeColor: 'blue' }
+                // Upsert the record
+                await Model.findOneAndUpdate(
+                    { id: record.id, userId },
+                    recordToSave,
+                    { upsert: true, new: true }
+                );
+                accepted++;
+            } else {
+                // Rejected because existing record is newer
+                rejected++;
+                conflicts.push({
+                    id: record.id,
+                    type: Model.modelName,
+                    reason: 'OLDER_TIMESTAMP',
+                    serverUpdatedAt: existing.updatedAt,
+                    clientUpdatedAt: record.updatedAt
+                });
             }
-        });
-    } catch (error) {
-        next(error);
+        } catch (error) {
+            console.error(`Error processing ${Model.modelName} record:`, error);
+            rejected++;
+        }
     }
+
+    return { accepted, rejected, conflicts };
 };
 
-// @desc    Restore from backup
-// @route   POST /api/v1/backup/restore
-// @access  Private
-const restoreBackup = async (req, res, next) => {
+/**
+ * @desc    Push local changes to server
+ * @route   POST /api/v1/sync/push
+ * @access  Private
+ */
+const pushChanges = async (req, res, next) => {
     try {
-        const { backupData } = req.body;
+        const { deviceId, lastSyncAt, changes } = req.body;
+        const userId = req.user.userId;
 
-        if (!backupData || !backupData.spaces) {
+        // Validate required fields
+        if (!deviceId) {
             return res.status(400).json({
                 success: false,
                 error: {
-                    code: 'INVALID_INPUT',
-                    message: 'Invalid backup data'
+                    code: 'MISSING_DEVICE_ID',
+                    message: 'deviceId is required'
                 }
             });
         }
 
-        // Clear existing data
-        await Space.deleteMany({ userId: req.user.userId });
-        await Category.deleteMany({ userId: req.user.userId });
-        await Item.deleteMany({ userId: req.user.userId });
-
-        // Restore spaces, categories, and items
-        for (const spaceData of backupData.spaces) {
-            const { categories, ...spaceInfo } = spaceData;
-
-            await Space.create({
-                ...spaceInfo,
-                userId: req.user.userId
+        if (!changes) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'MISSING_CHANGES',
+                    message: 'changes object is required'
+                }
             });
+        }
 
-            if (categories && Array.isArray(categories)) {
-                for (const categoryData of categories) {
-                    const { items, ...categoryInfo } = categoryData;
+        const results = {
+            spaces: { accepted: 0, rejected: 0, conflicts: [] },
+            categories: { accepted: 0, rejected: 0, conflicts: [] },
+            items: { accepted: 0, rejected: 0, conflicts: [] },
+            preferences: { accepted: 0, rejected: 0, conflicts: [] }
+        };
 
-                    await Category.create({
-                        ...categoryInfo,
-                        userId: req.user.userId
-                    });
+        // Process spaces
+        if (changes.spaces && Array.isArray(changes.spaces)) {
+            results.spaces = await processSyncChanges(
+                Space,
+                changes.spaces,
+                userId,
+                deviceId
+            );
+        }
 
-                    if (items && Array.isArray(items)) {
-                        for (const itemData of items) {
-                            await Item.create({
-                                ...itemData,
-                                userId: req.user.userId
-                            });
-                        }
-                    }
+        // Process categories
+        if (changes.categories && Array.isArray(changes.categories)) {
+            results.categories = await processSyncChanges(
+                Category,
+                changes.categories,
+                userId,
+                deviceId
+            );
+        }
+
+        // Process items
+        if (changes.items && Array.isArray(changes.items)) {
+            results.items = await processSyncChanges(
+                Item,
+                changes.items,
+                userId,
+                deviceId
+            );
+        }
+
+        // Process preferences (single object, not array)
+        if (changes.preferences) {
+            const prefArray = [changes.preferences];
+            results.preferences = await processSyncChanges(
+                UserPreferences,
+                prefArray,
+                userId,
+                deviceId
+            );
+        }
+
+        // Collect all conflicts
+        const allConflicts = [
+            ...results.spaces.conflicts,
+            ...results.categories.conflicts,
+            ...results.items.conflicts,
+            ...results.preferences.conflicts
+        ];
+
+        res.status(200).json({
+            success: true,
+            data: {
+                syncedAt: new Date().toISOString(),
+                conflicts: allConflicts,
+                accepted: {
+                    spaces: results.spaces.accepted,
+                    categories: results.categories.accepted,
+                    items: results.items.accepted,
+                    preferences: results.preferences.accepted
+                },
+                rejected: {
+                    spaces: results.spaces.rejected,
+                    categories: results.categories.rejected,
+                    items: results.items.rejected,
+                    preferences: results.preferences.rejected
                 }
             }
+        });
+    } catch (error) {
+        console.error('Push sync error:', error);
+        next(error);
+    }
+};
+
+/**
+ * @desc    Pull changes from server since last sync
+ * @route   GET /api/v1/sync/pull
+ * @access  Private
+ */
+const pullChanges = async (req, res, next) => {
+    try {
+        const { lastSyncAt, deviceId } = req.query;
+        const userId = req.user.userId;
+
+        // Validate required fields
+        if (!deviceId) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'MISSING_DEVICE_ID',
+                    message: 'deviceId query parameter is required'
+                }
+            });
         }
 
-        // Restore preferences
-        if (backupData.preferences) {
-            await UserPreferences.findOneAndUpdate(
-                { userId: req.user.userId },
-                { ...backupData.preferences, updatedAt: Date.now() },
-                { upsert: true }
+        // Parse lastSyncAt or use epoch if not provided
+        const syncThreshold = lastSyncAt
+            ? new Date(lastSyncAt)
+            : new Date(0); // Epoch = get all records
+
+        // Build query to get incremental changes
+        const buildQuery = (model) => ({
+            userId,
+            updatedAt: { $gt: syncThreshold },
+            // Don't send back changes from the same device
+            deviceId: { $ne: deviceId }
+        });
+
+        // Fetch incremental changes for each model
+        const [spaces, categories, items, preferences] = await Promise.all([
+            Space.find(buildQuery(Space)).lean(),
+            Category.find(buildQuery(Category)).lean(),
+            Item.find(buildQuery(Item)).lean(),
+            UserPreferences.findOne({
+                userId,
+                updatedAt: { $gt: syncThreshold },
+                deviceId: { $ne: deviceId }
+            }).lean()
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                syncedAt: new Date().toISOString(),
+                changes: {
+                    spaces: spaces || [],
+                    categories: categories || [],
+                    items: items || [],
+                    preferences: preferences || null
+                },
+                hasMore: false // Can implement pagination later if needed
+            }
+        });
+    } catch (error) {
+        console.error('Pull sync error:', error);
+        next(error);
+    }
+};
+
+/**
+ * @desc    Get full backup of user data
+ * @route   POST /api/v1/sync/backup
+ * @access  Private
+ */
+const createBackup = async (req, res, next) => {
+    try {
+        const userId = req.user.userId;
+
+        // Fetch ALL records for the user (including deleted)
+        const [spaces, categories, items, preferences] = await Promise.all([
+            Space.find({ userId }).lean(),
+            Category.find({ userId }).lean(),
+            Item.find({ userId }).lean(),
+            UserPreferences.findOne({ userId }).lean()
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                backupAt: new Date().toISOString(),
+                version: '1.0',
+                userId,
+                spaces: spaces || [],
+                categories: categories || [],
+                items: items || [],
+                preferences: preferences || null
+            }
+        });
+    } catch (error) {
+        console.error('Backup error:', error);
+        next(error);
+    }
+};
+
+/**
+ * @desc    Restore from backup (DANGEROUS - replaces all data)
+ * @route   POST /api/v1/sync/restore
+ * @access  Private
+ */
+const restoreBackup = async (req, res, next) => {
+    try {
+        const { backupData, deviceId } = req.body;
+        const userId = req.user.userId;
+
+        if (!backupData) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'MISSING_BACKUP_DATA',
+                    message: 'backupData is required'
+                }
+            });
+        }
+
+        if (!deviceId) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'MISSING_DEVICE_ID',
+                    message: 'deviceId is required'
+                }
+            });
+        }
+
+        // Clear existing data (soft delete)
+        const now = new Date();
+        await Promise.all([
+            Space.updateMany(
+                { userId },
+                { deleted: true, updatedAt: now, deviceId }
+            ),
+            Category.updateMany(
+                { userId },
+                { deleted: true, updatedAt: now, deviceId }
+            ),
+            Item.updateMany(
+                { userId },
+                { deleted: true, updatedAt: now, deviceId }
+            )
+        ]);
+
+        // Restore data using push logic (handles conflicts properly)
+        const changes = {
+            spaces: backupData.spaces || [],
+            categories: backupData.categories || [],
+            items: backupData.items || [],
+            preferences: backupData.preferences || null
+        };
+
+        // Process all changes
+        const results = {
+            spaces: { accepted: 0 },
+            categories: { accepted: 0 },
+            items: { accepted: 0 },
+            preferences: { accepted: 0 }
+        };
+
+        if (changes.spaces.length > 0) {
+            results.spaces = await processSyncChanges(Space, changes.spaces, userId, deviceId);
+        }
+
+        if (changes.categories.length > 0) {
+            results.categories = await processSyncChanges(Category, changes.categories, userId, deviceId);
+        }
+
+        if (changes.items.length > 0) {
+            results.items = await processSyncChanges(Item, changes.items, userId, deviceId);
+        }
+
+        if (changes.preferences) {
+            results.preferences = await processSyncChanges(
+                UserPreferences,
+                [changes.preferences],
+                userId,
+                deviceId
             );
         }
 
         res.status(200).json({
             success: true,
-            message: 'Data restored successfully'
+            message: 'Backup restored successfully',
+            data: {
+                restored: {
+                    spaces: results.spaces.accepted,
+                    categories: results.categories.accepted,
+                    items: results.items.accepted,
+                    preferences: results.preferences.accepted
+                }
+            }
         });
     } catch (error) {
+        console.error('Restore error:', error);
         next(error);
     }
 };
 
 module.exports = {
-    syncData,
-    getBackup,
+    pushChanges,
+    pullChanges,
+    createBackup,
     restoreBackup
 };

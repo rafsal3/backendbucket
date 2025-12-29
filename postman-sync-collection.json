@@ -1,0 +1,413 @@
+{
+    "info": {
+        "name": "Offline-First Sync API",
+        "description": "Test collection for the new offline-first sync endpoints",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{auth_token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:5000",
+            "type": "string"
+        },
+        {
+            "key": "auth_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "device_id",
+            "value": "postman-test-device",
+            "type": "string"
+        },
+        {
+            "key": "user_id",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "1. Authentication",
+            "item": [
+                {
+                    "name": "Register",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 201) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.collectionVariables.set('auth_token', response.data.token);",
+                                    "    pm.collectionVariables.set('user_id', response.data.user.userId);",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"name\": \"Test User\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/auth/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "register"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.collectionVariables.set('auth_token', response.data.token);",
+                                    "    pm.collectionVariables.set('user_id', response.data.user.userId);",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "2. Sync Endpoints (NEW)",
+            "item": [
+                {
+                    "name": "Push Changes",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"deviceId\": \"{{device_id}}\",\n  \"lastSyncAt\": \"2025-12-29T00:00:00.000Z\",\n  \"changes\": {\n    \"spaces\": [\n      {\n        \"id\": \"space_test_{{$timestamp}}\",\n        \"userId\": \"{{user_id}}\",\n        \"name\": \"Test Space\",\n        \"icon\": \"📝\",\n        \"isHidden\": false,\n        \"order\": 0,\n        \"deleted\": false,\n        \"deviceId\": \"{{device_id}}\",\n        \"createdAt\": \"{{$isoTimestamp}}\",\n        \"updatedAt\": \"{{$isoTimestamp}}\"\n      }\n    ],\n    \"categories\": [\n      {\n        \"id\": \"category_test_{{$timestamp}}\",\n        \"spaceId\": \"space_test_{{$timestamp}}\",\n        \"userId\": \"{{user_id}}\",\n        \"name\": \"Test Category\",\n        \"icon\": \"📌\",\n        \"isHidden\": false,\n        \"order\": 0,\n        \"deleted\": false,\n        \"deviceId\": \"{{device_id}}\",\n        \"createdAt\": \"{{$isoTimestamp}}\",\n        \"updatedAt\": \"{{$isoTimestamp}}\"\n      }\n    ],\n    \"items\": [\n      {\n        \"id\": \"item_test_{{$timestamp}}\",\n        \"spaceId\": \"space_test_{{$timestamp}}\",\n        \"categoryId\": \"category_test_{{$timestamp}}\",\n        \"userId\": \"{{user_id}}\",\n        \"text\": \"Test Item\",\n        \"isCompleted\": false,\n        \"imageUrl\": null,\n        \"description\": null,\n        \"order\": 0,\n        \"deleted\": false,\n        \"deviceId\": \"{{device_id}}\",\n        \"createdAt\": \"{{$isoTimestamp}}\",\n        \"updatedAt\": \"{{$isoTimestamp}}\"\n      }\n    ],\n    \"preferences\": {\n      \"id\": \"pref_{{user_id}}\",\n      \"userId\": \"{{user_id}}\",\n      \"isDarkMode\": true,\n      \"themeColor\": \"blue\",\n      \"deleted\": false,\n      \"deviceId\": \"{{device_id}}\",\n      \"createdAt\": \"{{$isoTimestamp}}\",\n      \"updatedAt\": \"{{$isoTimestamp}}\"\n    }\n  }\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/sync/push",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "sync",
+                                "push"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Pull Changes (All)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/sync/pull?deviceId={{device_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "sync",
+                                "pull"
+                            ],
+                            "query": [
+                                {
+                                    "key": "deviceId",
+                                    "value": "{{device_id}}"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Pull Changes (Incremental)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/sync/pull?lastSyncAt=2025-12-29T00:00:00.000Z&deviceId={{device_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "sync",
+                                "pull"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lastSyncAt",
+                                    "value": "2025-12-29T00:00:00.000Z"
+                                },
+                                {
+                                    "key": "deviceId",
+                                    "value": "{{device_id}}"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Backup",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/sync/backup",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "sync",
+                                "backup"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Restore Backup",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"deviceId\": \"{{device_id}}\",\n  \"backupData\": {\n    \"spaces\": [],\n    \"categories\": [],\n    \"items\": [],\n    \"preferences\": null\n  }\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/sync/restore",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "sync",
+                                "restore"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "3. Test Scenarios",
+            "item": [
+                {
+                    "name": "Scenario 1: Create Space",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"deviceId\": \"{{device_id}}\",\n  \"changes\": {\n    \"spaces\": [\n      {\n        \"id\": \"space_travel_001\",\n        \"userId\": \"{{user_id}}\",\n        \"name\": \"Travel Goals\",\n        \"icon\": \"✈️\",\n        \"isHidden\": false,\n        \"order\": 0,\n        \"deleted\": false,\n        \"deviceId\": \"{{device_id}}\",\n        \"createdAt\": \"{{$isoTimestamp}}\",\n        \"updatedAt\": \"{{$isoTimestamp}}\"\n      }\n    ],\n    \"categories\": [],\n    \"items\": [],\n    \"preferences\": null\n  }\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/sync/push",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "sync",
+                                "push"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Scenario 2: Update Space",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"deviceId\": \"{{device_id}}\",\n  \"changes\": {\n    \"spaces\": [\n      {\n        \"id\": \"space_travel_001\",\n        \"userId\": \"{{user_id}}\",\n        \"name\": \"Travel Goals (Updated)\",\n        \"icon\": \"🌍\",\n        \"isHidden\": false,\n        \"order\": 0,\n        \"deleted\": false,\n        \"deviceId\": \"{{device_id}}\",\n        \"createdAt\": \"2025-12-29T06:00:00.000Z\",\n        \"updatedAt\": \"{{$isoTimestamp}}\"\n      }\n    ],\n    \"categories\": [],\n    \"items\": [],\n    \"preferences\": null\n  }\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/sync/push",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "sync",
+                                "push"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Scenario 3: Soft Delete Space",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"deviceId\": \"{{device_id}}\",\n  \"changes\": {\n    \"spaces\": [\n      {\n        \"id\": \"space_travel_001\",\n        \"userId\": \"{{user_id}}\",\n        \"name\": \"Travel Goals (Updated)\",\n        \"icon\": \"🌍\",\n        \"isHidden\": false,\n        \"order\": 0,\n        \"deleted\": true,\n        \"deviceId\": \"{{device_id}}\",\n        \"createdAt\": \"2025-12-29T06:00:00.000Z\",\n        \"updatedAt\": \"{{$isoTimestamp}}\"\n      }\n    ],\n    \"categories\": [],\n    \"items\": [],\n    \"preferences\": null\n  }\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/sync/push",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "sync",
+                                "push"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Scenario 4: Conflict (Older Timestamp)",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"deviceId\": \"{{device_id}}\",\n  \"changes\": {\n    \"spaces\": [\n      {\n        \"id\": \"space_travel_001\",\n        \"userId\": \"{{user_id}}\",\n        \"name\": \"Old Update\",\n        \"icon\": \"📝\",\n        \"isHidden\": false,\n        \"order\": 0,\n        \"deleted\": false,\n        \"deviceId\": \"{{device_id}}\",\n        \"createdAt\": \"2025-12-29T06:00:00.000Z\",\n        \"updatedAt\": \"2025-12-29T05:00:00.000Z\"\n      }\n    ],\n    \"categories\": [],\n    \"items\": [],\n    \"preferences\": null\n  }\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/sync/push",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "sync",
+                                "push"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "4. Old CRUD Endpoints (DEPRECATED)",
+            "item": [
+                {
+                    "name": "Get Spaces (DEPRECATED)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/spaces",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "spaces"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
